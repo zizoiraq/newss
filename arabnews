@@ -12,7 +12,7 @@ const ArabicNewsAggregator = () => {
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const response = await axios.get('https://api.example.com/get-news');
+                const response = await axios.get('/api/get-news');
                 setArticles(response.data.articles);
                 setCategories([...new Set(response.data.articles.map(article => article.category))]);
                 setLoading(false);
@@ -151,4 +151,45 @@ export default ArabicNewsAggregator;
 
 .read-more:hover {
     text-decoration: underline;
+}
+
+/* Backend - pages/api/get-news.js */
+
+// Create a simple API to serve news articles
+import { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+export default async function handler(req, res) {
+    try {
+        const response = await axios.get('https://newsapi.org/v2/top-headlines?language=ar&apiKey=YOUR_API_KEY');
+        const articles = response.data.articles.map(article => ({
+            title: article.title,
+            description: article.description || "لا يوجد وصف",
+            url: article.url,
+            category: article.source.name || "عام"
+        }));
+        res.status(200).json({ articles });
+    } catch (error) {
+        console.error('Error fetching news:', error);
+        res.status(500).json({ error: 'Failed to fetch news' });
+    }
+}
+
+/* Add package.json for deployment */
+
+// package.json
+{
+    "name": "arabic-news-aggregator",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start"
+    },
+    "dependencies": {
+        "next": "latest",
+        "react": "latest",
+        "react-dom": "latest",
+        "axios": "latest"
+    }
 }
